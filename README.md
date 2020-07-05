@@ -1,4 +1,4 @@
-# colorEncryption
+# Color encryption
 Encrypt messages in plainsight by combining letters with different colors of pixels!
 
 
