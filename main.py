@@ -54,15 +54,15 @@ def decodeMessage(pathToFile):
                 DECODED_MESSAGE += value # if thats the case then add the key to our string
     return DECODED_MESSAGE
 
-def writeToImage(ENCODED_MESSAGE, result):
-    image = Image.new("RGB", (10, 10), color=None) # Open the file
+def writeToImage(ENCODED_MESSAGE, result, width, height):
+    image = Image.new("RGB", (width, height), color=None) # Open the file
     pix = image.load() # Load it's contents to memory
     x = 0
     y = 0
     for n in ENCODED_MESSAGE:
         pix[x,y] = n # Adds the color code of n to the position of x and y in pix
         x += 1
-        if (x == 10): # Have we reached the end of the line?
+        if (x == width): # Have we reached the end of the line?
             y += 1
             x = 0
     image.save(result) # Save the result
@@ -91,9 +91,9 @@ def updAlphabet(file):
     for n in openFile:
         ALPHA.append(n[:-1])
 
-def main(ENCODED_FILE, store_enc):
+def main(ENCODED_FILE, store_enc, width, height):
         run = True
-        VERSION = "1.1.2"
+        VERSION = "1.1.3"
         ENCODED_MESSAGE = []
 
         if (len(CTW) == 0):
@@ -120,7 +120,7 @@ def main(ENCODED_FILE, store_enc):
                     DECODED_MESSAGE = decodeMessage(ENCODED_FILE)
                 print("The decoded message is {}".format(DECODED_MESSAGE))
             elif userInput == "3":
-                writeToImage(ENCODED_MESSAGE, "result.png")
+                writeToImage(ENCODED_MESSAGE, "result.png", width, height)
             elif userInput == "4":
                 showCurrentEnc()
             elif userInput == "5":
@@ -133,10 +133,14 @@ if __name__ == "__main__":
     parser.add_argument("--store_enc", "-se", action="store_true", help="Saves the generated encot into the file enc.txt")
     parser.add_argument("--load_enc", "-le", help="Loads the given encoding into memory")
     parser.add_argument("--load_image", "-li", help="Loads an image into the program")
+    parser.add_argument("--width", help="Width of the generated picture")
+    parser.add_argument("--height", help="Height of the generated picture")
     parser.add_argument("--update_alpha", "-ua", help="Updates the internal alphabet with an additional amount of characters")
     args = parser.parse_args()
     store_enc = False
     file = None
+    height = 10
+    width = 10
 
     if (args.store_enc):
         store_enc = True
@@ -146,5 +150,9 @@ if __name__ == "__main__":
         loadEncoding(args.load_enc)
     if (args.update_alpha):
         updAlphabet(args.update_alpha)
+    if (args.width):
+        width = int(args.width)
+    if (args.height):
+        height = int(args.height)
 
-    main(file, store_enc)
+    main(file, store_enc, width, height)
