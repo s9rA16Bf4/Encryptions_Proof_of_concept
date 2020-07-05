@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from PIL import Image
 from random import randint
-import argparse
+from argparse import ArgumentParser
 
 CTW = {}
 ALPHA = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", " ",
@@ -34,13 +34,18 @@ def encodeMessage(mess):
             try:
                 ENCODED_MESSAGE.append(CTW[letter]) # appends the generated color code
             except KeyError:
-                print("! Unknown character {}".format(letter))
+                print("[!] Unknown character {}".format(letter))
                 exit()
         return ENCODED_MESSAGE
 
 def decodeMessage(pathToFile):
     DECODED_MESSAGE = ""
-    image = Image.open(pathToFile)
+    try:
+        image = Image.open(pathToFile)
+    except IOError:
+        print("[!] Failed to open file {}".format(pathToFile))
+        exit()
+
     pixels = list(image.getdata())
 
     for color in pixels:
@@ -60,9 +65,8 @@ def writeToImage(ENCODED_MESSAGE, result):
         if (x == 10): # Have we reached the end of the line?
             y += 1
             x = 0
-
     image.save(result) # Save the result
-    print("!¡ Image can be found in {}".format(result))
+    print("[!] Image can be found in {}".format(result))
 
 def storeEncoding(): # Used when saving the encoding to the computer
     openFile = open("enc.txt", "w")
@@ -89,7 +93,7 @@ def updAlphabet(file):
 
 def main(ENCODED_FILE, store_enc):
         run = True
-        VERSION = "1.1"
+        VERSION = "1.1.2"
         ENCODED_MESSAGE = []
 
         if (len(CTW) == 0):
@@ -125,7 +129,7 @@ def main(ENCODED_FILE, store_enc):
                 print("Unknown argument {}".format(userInput))
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = ArgumentParser()
     parser.add_argument("--store_enc", "-se", action="store_true", help="Saves the generated encot into the file enc.txt")
     parser.add_argument("--load_enc", "-le", help="Loads the given encoding into memory")
     parser.add_argument("--load_image", "-li", help="Loads an image into the program")
