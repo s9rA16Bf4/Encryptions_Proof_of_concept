@@ -3,17 +3,11 @@ from PIL import Image
 from random import randint
 import argparse
 
-"""
-
-Encoding characters in plainsight by using different color schemes
-
-"""
-
 # Required
 # PIL
 
 CTW = {}
-COVER = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", " ",
+ALPHA = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", " ",
 "1","2","3","4","5","6","7","8","9","0", "!", "@", "£", "#", "$", "¤", "%","€","&","/","{","[","(",")","]","=","}","+","?","`","±", "A", "B", "C"
 "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 
@@ -31,7 +25,7 @@ LOGO = """
 
 def generateColor():
     USED_COLOR_SCHEMES = []
-    for n in COVER: # For each letter
+    for n in ALPHA: # For each letter
         color = (randint(0,255), randint(0,255), randint(0,255)) # generate a color
         while(color in USED_COLOR_SCHEMES is False): # if the color has already been picked
             color = (randint(0,255), randint(0,255), randint(0,255)) # generate a new one and try again
@@ -95,7 +89,7 @@ def showCurrentEnc():
 def updAlphabet(file):
     openFile = open(file, "r")
     for n in openFile:
-        COVER.append(n[:-1])
+        ALPHA.append(n[:-1])
 
 def main(ENCODED_FILE, store_enc):
         run = True
