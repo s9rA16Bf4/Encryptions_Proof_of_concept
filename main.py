@@ -5,7 +5,7 @@ import argparse
 
 CTW = {}
 ALPHA = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", " ",
-"1","2","3","4","5","6","7","8","9","0", "!", "@", "£", "#", "$", "¤", "%","€","&","/","{","[","(",")","]","=","}","+","?","`","±", "A", "B", "C"
+"1","2","3","4","5","6","7","8","9","0", "!", "@", "£", "#", "$", "¤", "%","€","&","/","{","[","(",")","]","=","}","+","?","`", "-", "_" ,"±", "A", "B", "C"
 "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 
 LOGO = """
@@ -28,15 +28,14 @@ def generateColor():
             color = (randint(0,255), randint(0,255), randint(0,255)) # generate a new one and try again
         CTW[n] = color # and finally we are done
 
-def readColorFromFile(image):
-        im = Image.open(image)
-        pix = im.load()
-        width, height = im.size
-
 def encodeMessage(mess):
         ENCODED_MESSAGE = []
         for letter in mess:
+            try:
                 ENCODED_MESSAGE.append(CTW[letter]) # appends the generated color code
+            except KeyError:
+                print("! Unknown character {}".format(letter))
+                exit()
         return ENCODED_MESSAGE
 
 def decodeMessage(pathToFile):
@@ -115,7 +114,7 @@ def main(ENCODED_FILE, store_enc):
                     DECODED_MESSAGE = decodeMessage(input(">> Path to file: "))
                 else:
                     DECODED_MESSAGE = decodeMessage(ENCODED_FILE)
-                print("Decoded message is {}".format(DECODED_MESSAGE))
+                print("The decoded message is {}".format(DECODED_MESSAGE))
             elif userInput == "3":
                 writeToImage(ENCODED_MESSAGE, "result.png")
             elif userInput == "4":
@@ -127,8 +126,8 @@ def main(ENCODED_FILE, store_enc):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--store_enc", "-se", action="store_true", help="Saves the generated into the file enc.txt")
-    parser.add_argument("--load_enc", "-le", help="Loads the given into memory")
+    parser.add_argument("--store_enc", "-se", action="store_true", help="Saves the generated encot into the file enc.txt")
+    parser.add_argument("--load_enc", "-le", help="Loads the given encoding into memory")
     parser.add_argument("--load_image", "-li", help="Loads an image into the program")
     parser.add_argument("--update_alpha", "-ua", help="Updates the internal alphabet with an additional amount of characters")
     args = parser.parse_args()
