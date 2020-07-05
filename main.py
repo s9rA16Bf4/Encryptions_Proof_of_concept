@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from PIL import Image
 from random import randint
-from os import system
+import argparse
 
 """
 
@@ -11,11 +11,12 @@ Encoding characters in plainsight by using different color schemes
 
 # Required
 # PIL
-# numpy
 
 CTW = {}
-ALPHA = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", " "]
-USED_COLOR_SCHEMES = []
+COVER = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", " ",
+"1","2","3","4","5","6","7","8","9","0", "!", "@", "£", "#", "$", "¤", "%","€","&","/","{","[","(",")","]","=","}","+","?","`","±", "A", "B", "C"
+"D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+
 LOGO = """
  ██▓███  ▓█████  █     █░    ██▓███  ▓█████  █     █░    ▄████▄   ▒█████   ▒█████   ██▓        ▄████▄   ▒█████   ██▓     ▒█████   ██▀███
 ▓██░  ██▒▓█   ▀ ▓█░ █ ░█░   ▓██░  ██▒▓█   ▀ ▓█░ █ ░█░   ▒██▀ ▀█  ▒██▒  ██▒▒██▒  ██▒▓██▒       ▒██▀ ▀█  ▒██▒  ██▒▓██▒    ▒██▒  ██▒▓██ ▒ ██▒
@@ -29,90 +30,127 @@ LOGO = """
 """
 
 def generateColor():
-        for n in ALPHA:
-                color = (randint(0,255), randint(0,255), randint(0,255))
-                while(color in USED_COLOR_SCHEMES is False):
-                        color = (randint(0,255), randint(0,255), randint(0,255))
-                CTW[n] = color
+    USED_COLOR_SCHEMES = []
+    for n in COVER: # For each letter
+        color = (randint(0,255), randint(0,255), randint(0,255)) # generate a color
+        while(color in USED_COLOR_SCHEMES is False): # if the color has already been picked
+            color = (randint(0,255), randint(0,255), randint(0,255)) # generate a new one and try again
+        CTW[n] = color # and finally we are done
 
 def readColorFromFile(image):
         im = Image.open(image)
         pix = im.load()
         width, height = im.size
-        for x in range(width):
-                for y in range(height):
-                        if x in CTW.values() or y in CTW.values():
-                                print("hi")
 
 def encodeMessage(mess):
         ENCODED_MESSAGE = []
         for letter in mess:
-                ENCODED_MESSAGE.append(CTW[letter])
+                ENCODED_MESSAGE.append(CTW[letter]) # appends the generated color code
         return ENCODED_MESSAGE
 
-def decodeMessage(mess): # must be a list
-        DECODED_MESSAGE = ""
-        for color in list(mess):
-                for value in CTW.keys():
-                        if color == CTW[value]:
-                            DECODED_MESSAGE += value
-        return DECODED_MESSAGE
+def decodeMessage(pathToFile):
+    DECODED_MESSAGE = ""
+    image = Image.open(pathToFile)
+    pixels = list(image.getdata())
+
+    for color in pixels:
+        for value in CTW.keys():
+            if color == CTW[value]: # have we found the key which returns the value of 'color'
+                DECODED_MESSAGE += value # if thats the case then add the key to our string
+    return DECODED_MESSAGE
 
 def writeToImage(ENCODED_MESSAGE, result):
-        image = Image.new("RGB", (len(ENCODED_MESSAGE), len(ENCODED_MESSAGE)), color=None)
-        pix = image.load()
-        x = 0
-        y = 0
-        for n in ENCODED_MESSAGE:
-           pix[x,y] = n
-           x += 1
-           if (x == len(ENCODED_MESSAGE)):
-                y += 1
-                x = 0
+    image = Image.new("RGB", (10, 10), color=None) # Open the file
+    pix = image.load() # Load it's contents to memory
+    x = 0
+    y = 0
+    for n in ENCODED_MESSAGE:
+        pix[x,y] = n # Adds the color code of n to the position of x and y in pix
+        x += 1
+        if (x == 10): # Have we reached the end of the line?
+            y += 1
+            x = 0
 
-        image.save(result)
-        print("¡ Image can be found in {}".format(result))
+    image.save(result) # Save the result
+    print("!¡ Image can be found in {}".format(result))
 
-def main(image):
+def storeEncoding(): # Used when saving the encoding to the computer
+    openFile = open("enc.txt", "w")
+    for n in CTW:
+        openFile.write("{0}\t{1}\n".format(n, CTW[n]))
+    openFile.close()
+
+def loadEncoding(file): # Loads the given encoding into memory
+    openFile = open(file, "r")
+    for n in openFile:
+        char = n.split("\t")[0]
+        code = n.split("\t")[1][1:-2] # Removes the \n at the end
+        CTW[char] = eval(code) # Remove eval() and you will have hell
+    openFile.close()
+
+def showCurrentEnc():
+    for n in CTW:
+        print("{}\t{}".format(n, CTW[n]))
+
+def updAlphabet(file):
+    openFile = open(file, "r")
+    for n in openFile:
+        COVER.append(n[:-1])
+
+def main(ENCODED_FILE, store_enc):
         run = True
-        INPUT = None
-        DECODED_MESSAGE = None
-        VERSION = "1.0"
+        VERSION = "1.1"
         ENCODED_MESSAGE = []
-        generateColor() # Generates the colors for each char
+
+        if (len(CTW) == 0):
+            generateColor() # Generates the colors for each letter in the alphabet
+        if (store_enc):
+            storeEncoding()
+        print("{}\n\t\t\tVersion: {}".format(LOGO, VERSION))
+
         while(run):
-                #system("clear") # Very linux special
-                print("""
-{0}
-\tVersion {1}
-
-
-input -> {2}
-encoded -> {3}
-decoded -> {4}
-
-1) Take input
-2) Encode image from input
-3) Decode input from image
-4) Write image
+            print("""
+1) Encode
+2) Decode
+3) Write image
+4) Show current encoding
 5) Quit
-""".format(LOGO, VERSION, INPUT, ENCODED_MESSAGE, DECODED_MESSAGE)
-)
-                userInput = input(": ")
-                if userInput == "1":
-                        INPUT = input(">> ")
-                elif userInput == "2":
-                        if INPUT != None:
-                               ENCODED_MESSAGE = [] # Reset
-                               ENCODED_MESSAGE = encodeMessage(INPUT)
-                elif userInput == "3":
-                        DECODED_MESSAGE = decodeMessage(ENCODED_MESSAGE)
-                elif userInput == "4":
-                        writeToImage(ENCODED_MESSAGE, "result.png")
-                elif userInput == "5":
-                        run = False
+""")
+            userInput = input(": ")
+            if userInput == "1":
+                ENCODED_MESSAGE = encodeMessage(input(">> Message to encode: "))
+            elif userInput == "2":
+                if ENCODED_FILE == None:
+                    DECODED_MESSAGE = decodeMessage(input(">> Path to file: "))
                 else:
-                        print("Unknown argument {}".format(userInput))
+                    DECODED_MESSAGE = decodeMessage(ENCODED_FILE)
+                print("Decoded message is {}".format(DECODED_MESSAGE))
+            elif userInput == "3":
+                writeToImage(ENCODED_MESSAGE, "result.png")
+            elif userInput == "4":
+                showCurrentEnc()
+            elif userInput == "5":
+                run = False
+            else:
+                print("Unknown argument {}".format(userInput))
 
 if __name__ == "__main__":
-        main("test.jpg")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--store_enc", "-se", action="store_true", help="Saves the generated into the file enc.txt")
+    parser.add_argument("--load_enc", "-le", help="Loads the given into memory")
+    parser.add_argument("--load_image", "-li", help="Loads an image into the program")
+    parser.add_argument("--update_alpha", "-ua", help="Updates the internal alphabet with an additional amount of characters")
+    args = parser.parse_args()
+    store_enc = False
+    file = None
+
+    if (args.store_enc):
+        store_enc = True
+    if (args.load_image):
+        file = args.load_image
+    if (args.load_enc):
+        loadEncoding(args.load_enc)
+    if (args.update_alpha):
+        updAlphabet(args.update_alpha)
+
+    main(file, store_enc)
