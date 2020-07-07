@@ -6,7 +6,7 @@ from os import system
 
 CTW = {}
 ALPHA = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", " ",
-"1","2","3","4","5","6","7","8","9","0", "!", "@", "£", "#", "$", "¤", "%","€","&","/","{","[","(",")","]","=","}","+","?","`", "-", "_" ,"±", "A", "B", "C"
+"1","2","3","4","5","6","7","8","9","0", "!", "@", "£", "#", "$", "¤", "%","€","&","/","{","[","(",")","]","=","}","+","?","`", "-", "_" ,"±", "A", "B", "C",
 "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "\n", "\t",".", ",", ";", ">", "<", "|"
 , ":", '"']
 
@@ -45,24 +45,30 @@ def decryptMessage(pathToFile, count, width, height):
         print("[!] Failed to open file {}".format(pathToFile))
         exit() # What's the point in continuing?
 
-
-    if (width == None): # Get our end points
+    if (width == None): # Get our canvas size
         width = image.size[0]
-    if (height == None): # Get our end points
+    if (height == None): # Get our canvas size
         height = image.size[1]
     pixels = image.load() # Get all the pixels
-    while(y != height):
+    while (y != height):
         for value in CTW.keys():
             if (pixels[x,y] == CTW[value]): # have we found the key which returns the value of 'color'
                 DECODED_MESSAGE += value # if thats the case then add the key to our string
         x += count
-        if (x == width): # if we have reached the end of the x-axel then reset and jump one row down on the y-axel
+        if (x >= width): # if we have reached the end of the x-axel then reset and jump one row down on the y-axel
             x = 0
-            y += 1
+            y += count
+            if (y > height): # If we go out of bounds
+                y = height # Just put us at the end
 
     return DECODED_MESSAGE
 
 def saveImage(ENCODED_MESSAGE, outputFileName, width, height, count, blanks):
+    if (width == None):
+        width = 10
+    if (height == None):
+        height = 10
+
     image = Image.new("RGB", (width, height), color=None) # Open the file
     pix = image.load() # Load it's contents to memory
     x = 0
@@ -70,8 +76,11 @@ def saveImage(ENCODED_MESSAGE, outputFileName, width, height, count, blanks):
     for n in ENCODED_MESSAGE:
         pix[x,y] = n # Adds the color code of n to the position of x and y in pix
         x += count
-        if (x == width): # Have we reached the end of the line?
+        if (x >= width): # Have we reached the end of the line?
             y += count
+            if (y >= height):
+                print("[!] You must use a bigger canvas than height:{} width:{}".format(height, width))
+                exit()
             x = 0
 
     if (blanks): # We will fill all the black pixels with a random color
@@ -159,8 +168,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     file = None
-    height = 10
-    width = 10
+    height = None
+    width = None
     count = 1 # Default distance between each pod (pixel of data) is one
     fill_blank = False
 
