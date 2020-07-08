@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:
+    print("[!] You need to have Pillow (PIL) installed to be able to use this program")
+    exit()
 from random import randint, choice
 from argparse import ArgumentParser
 from os import system
@@ -36,7 +40,7 @@ def encryptMessage(mess):
 
 def decryptMessage(pathToFile, count, width, height):
     DECODED_MESSAGE = ""
-    x = 0
+    x = count
     y = 0
 
     try:
@@ -56,7 +60,7 @@ def decryptMessage(pathToFile, count, width, height):
                 DECODED_MESSAGE += value # if thats the case then add the key to our string
         x += count
         if (x >= width): # if we have reached the end of the x-axel then reset and jump one row down on the y-axel
-            x = 0
+            x = count
             y += count
             if (y > height): # If we go out of bounds
                 y = height # Just put us at the end
@@ -75,7 +79,7 @@ def saveImage(ENCODED_MESSAGE, outputFileName, width, height, count, blanks, upd
         image = Image.new("RGB", (width, height), color=None) # Open the file
 
     pix = image.load() # Load it's contents to memory
-    x = 0
+    x = count
     y = 0
     for n in ENCODED_MESSAGE:
         pix[x,y] = n # Adds the color code of n to the position of x and y in pix
@@ -85,7 +89,7 @@ def saveImage(ENCODED_MESSAGE, outputFileName, width, height, count, blanks, upd
             if (y >= height):
                 print("[!] You must use a bigger canvas than height:{} width:{}".format(height, width))
                 exit()
-            x = 0
+            x = count
 
     if (blanks): # We will fill all the black pixels with a random color
         x = 0
