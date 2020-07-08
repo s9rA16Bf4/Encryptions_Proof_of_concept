@@ -1,5 +1,6 @@
 # Color encryption
-Encrypt messages in plainsight by combining letters with different colors of pixels!
+Encrypt messages in plainsight by combining letters with different colors of pixels!<br/>
+It's now possible to use an image and encrypt a message into it!
 
 ## Where to begin?
 Take a look at the Wiki to see some guidance on how the program works
