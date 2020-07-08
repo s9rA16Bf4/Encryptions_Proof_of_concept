@@ -63,13 +63,17 @@ def decryptMessage(pathToFile, count, width, height):
 
     return DECODED_MESSAGE
 
-def saveImage(ENCODED_MESSAGE, outputFileName, width, height, count, blanks):
+def saveImage(ENCODED_MESSAGE, outputFileName, width, height, count, blanks, updImage):
     if (width == None):
         width = 10
     if (height == None):
         height = 10
 
-    image = Image.new("RGB", (width, height), color=None) # Open the file
+    if (updImage != None): # We are gonna encrypt the message in the provided picture
+        image = Image.open(updImage)
+    else:
+        image = Image.new("RGB", (width, height), color=None) # Open the file
+
     pix = image.load() # Load it's contents to memory
     x = 0
     y = 0
@@ -126,8 +130,9 @@ def updAlphabet(file):
     for n in openFile:
         ALPHA.append(n[:-1]) # Removes the \n at the end of n and inserts it into the global alphabet list
 
-def encrypt(message, width, height, readFile, count, fillBlanks):
-    generateEncoding() # Get the encoding
+def encrypt(message, width, height, readFile, count, fillBlanks, updImage):
+    if (len(CTW) == 0):
+        generateEncoding() # Get the encoding
     if (readFile): # We are gonna encrypt the contents of a file
         openFile = open(message, "r")
         message = []
@@ -135,7 +140,7 @@ def encrypt(message, width, height, readFile, count, fillBlanks):
             message.append(n)
 
     ENCODED_MESSAGE = encryptMessage(message) # Get the encrypted message
-    saveImage(ENCODED_MESSAGE, "result.png", width, height, count, fillBlanks) # Save it as an image
+    saveImage(ENCODED_MESSAGE, "result.png", width, height, count, fillBlanks, updImage) # Save it as an image
     saveEncoding() # Save the encoding used
 
 def decrypt(imagePath, encPath, saveResult, runSys, count, width, height):
@@ -151,8 +156,30 @@ def decrypt(imagePath, encPath, saveResult, runSys, count, width, height):
     else:
         print("Decoded message: {}".format(DECODED_MESSAGE))
 
+def genEncFromImage(pathToImage):
+    try:
+        image = Image.open(pathToImage)
+    except IOError:
+        print("[!] Failed to open the provided image {}".format(pathToImage))
+        exit()
+    pixels = list(image.getdata())
+    USED_COLOR_SCHEMES = []
+    for n in ALPHA: # For each letter
+        found_pix = False # Used to identify if we have enough pixels
+        for color in pixels:
+            if ((color in USED_COLOR_SCHEMES) is False):
+                CTW[n] = color # Assign the letter to the color
+                USED_COLOR_SCHEMES.append(color)
+                found_pix = True
+                break
+        if (found_pix != True):
+            print("[!] Error: You need to have an image which consists of {} different colors/shades of pixels".format(len(ALPHA)))
+            exit()
+
 if __name__ == "__main__":
     parser = ArgumentParser()
+    parser.add_argument("--encrypt", help="Encrypts the passed argument and saves it to the disk. The encoding used is automatically saved!")
+    parser.add_argument("--decrypt", action="store_true", help="Decrypts the passed image and prints the result. (-le and -li are required)")
     parser.add_argument("--load_enc", "-le", help="Loads the given encoding into memory")
     parser.add_argument("--load_image", "-li", help="Loads an image into the program")
     parser.add_argument("--update_alpha", "-ua", help="Updates the internal alphabet with an additional amount of characters")
@@ -163,8 +190,8 @@ if __name__ == "__main__":
     parser.add_argument("--file", action="store_true", help="Marking that the contents of a file should be used to encrypt, only usable with the --encrypt flag")
     parser.add_argument("--width", help="Width of the generated picture, can also be used to get the x-side of where to look when decrypting")
     parser.add_argument("--height", help="Height of the generated picture, can also be used to get the y-side of where to look when decrypting")
-    parser.add_argument("--encrypt", help="Encrypts the passed argument and saves it to the disk. The encoding used is automatically saved!")
-    parser.add_argument("--decrypt", action="store_true", help="Decrypts the passed image and prints the result. (-le and -li are required)")
+    parser.add_argument("--gen_enc_from_image", "-gefi",help="Generates an encoding based of the pixels in the given image and saves it to the file 'enc.txt'")
+    parser.add_argument("--include_in_pic", "-iip", help="Tells the encrypter that we shall use an image (provided by the user) instead of generating our own, only usable with the --encrypt flag")
 
     args = parser.parse_args()
     file = None
@@ -187,9 +214,17 @@ if __name__ == "__main__":
         height = int(args.height)
     if (args.count):
         count = args.count
+    if (args.gen_enc_from_image):
+        genEncFromImage(args.gen_enc_from_image)
+        saveEncoding()
+        print("[!] Result can be found in the file 'enc.txt'")
+        exit()
 
     if (args.encrypt):
-        encrypt(args.encrypt, width, height, args.file, int(count), fill_blank)
+        if (args.include_in_pic):
+            encrypt(args.encrypt, width, height, args.file, int(count), fill_blank, args.include_in_pic)
+        else:
+            encrypt(args.encrypt, width, height, args.file, int(count), fill_blank, None)
     elif (args.decrypt):
         if (args.load_image and args.load_enc):
             decrypt(args.load_image, args.load_enc, args.save_dec, args.sys, int(count), width, height)
