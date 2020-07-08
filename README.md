@@ -18,5 +18,7 @@ It's important that you have `Pillow` installed, the program will not work other
 
 ![Example 4](https://github.com/s9rA16Bf4/colorEncryption/blob/master/pictures/1594209552_1359_08072020_1366x768.png) And this is the same message as before, the same pod but with the addition that the rest of the pixels consist of random colors
 
+![Example 5](https://github.com/s9rA16Bf4/colorEncryption/blob/master/pictures/1594210667_1417_08072020_1366x768.png) This image is pretty special, it contains the message "hello" and "world". But you can only find that out if you decrypt it with the pod set to 4 (this will get you "hello") and 3 ("world").  You ofcourse need the correct encryption table to be able to decipher it
+
 ## Challenges
 1) http://q9j4vf8.atwebpages.com/
