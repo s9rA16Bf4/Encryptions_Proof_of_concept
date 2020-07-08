@@ -38,11 +38,8 @@ def encryptMessage(mess):
 
         return ENCODED_MESSAGE
 
-def decryptMessage(pathToFile, count, width, height):
+def decryptMessage(pathToFile, count, width, height, encodingType):
     DECODED_MESSAGE = ""
-    x = count
-    y = 0
-
     try:
         image = Image.open(pathToFile) # Try to open the picture
     except IOError:
@@ -53,21 +50,58 @@ def decryptMessage(pathToFile, count, width, height):
         width = image.size[0]
     if (height == None): # Get our canvas size
         height = image.size[1]
+
+    y = 0
+
+    if (encodingType == "ltr"):
+        x = count
+    elif (encodingType == "rtl"):
+        x = width - 1
+    elif (encodingType == "ttb" or encoding_type == "btt"):
+        if (encoding_type == "btt"):
+            y = height - 1
+        x = 0
+
     pixels = image.load() # Get all the pixels
-    while (y != height):
-        for value in CTW.keys():
-            if (pixels[x,y] == CTW[value]): # have we found the key which returns the value of 'color'
-                DECODED_MESSAGE += value # if thats the case then add the key to our string
-        x += count
-        if (x >= width): # if we have reached the end of the x-axel then reset and jump one row down on the y-axel
-            x = count
-            y += count
-            if (y > height): # If we go out of bounds
-                y = height # Just put us at the end
+    if (encodingType == "ltr" or encodingType == "rtl"):
+        while (y != height):
+            for value in CTW.keys():
+                if (pixels[x,y] == CTW[value]): # have we found the key which returns the value of 'color'
+                    DECODED_MESSAGE += value # if thats the case then add the key to our string
+
+            if (encodingType == "ltr"):
+                x += count
+                if (x >= width): # if we have reached the end of the x-axel then reset and jump one row down on the y-axel
+                    x = count
+                    y += count
+
+            elif (encodingType == "rtl"):
+                x -= count
+                if (x < 0): # if we have reached the end of the x-axel then reset and jump one row down on the y-axel
+                    x = width - 1
+                    y += count
+    elif (encodingType == "ttb" or encodingType == "btt"):
+        while(x != width):
+            for value in CTW.keys():
+                if (pixels[x,y] == CTW[value]): # have we found the key which returns the value of 'color'
+                    DECODED_MESSAGE += value # if thats the case then add the key to our string
+            if (encodingType == "ttb"):
+                y += count
+                if (y >= height):
+                    y = 0
+                    x += count
+            elif (encodingType == "btt"):
+                y -= count
+                if (y < 0):
+                    y = height - 1
+                    x += count
+
+        if (y > height): # If we go out of bounds
+            y = height # Just put us at the end
 
     return DECODED_MESSAGE
 
-def saveImage(ENCODED_MESSAGE, outputFileName, width, height, count, blanks, updImage):
+def saveImage(ENCODED_MESSAGE, outputFileName, width, height, count, blanks, updImage, encodingType):
     if (width == None and updImage == None):
         width = 10
     if (height == None and updImage == None):
@@ -81,18 +115,53 @@ def saveImage(ENCODED_MESSAGE, outputFileName, width, height, count, blanks, upd
         image = Image.new("RGB", (width, height), color=None) # Open the file
 
     pix = image.load() # Load it's contents to memory
-    x = count
-    y = 0
+    if (encodingType == "ltr"):
+        x = count
+        y = 0
+    elif (encodingType == "rtl"):
+        x = width-1
+        y = 0
+    elif (encodingType == "ttb"):
+        x = count
+        y = 0
+    elif (encodingType == "btt"):
+        x = count
+        y = height - 1
 
     for n in ENCODED_MESSAGE:
         pix[x,y] = n # Adds the color code of n to the position of x and y in pix
-        x += count
-        if (x >= width): # Have we reached the end of the line?
+        if (encodingType == "ltr"):
+            x += count
+            if (x >= width): # Have we reached the end of the line?
+                y += count
+                if (y >= height):
+                    print("[!] You must use a bigger canvas than height:{} width:{}".format(height, width))
+                    exit()
+                x = count
+        elif (encodingType == "rtl"):
+            x -= count
+            if (x < 0): # Have we reached the end of the line?
+                y += count # Jump one line down
+                if (y >= height):
+                    print("[!] You must use a bigger canvas than height:{} width:{}".format(height, width))
+                    exit()
+                x = width - 1
+        elif (encodingType == "btt"):
+            y -= count
+            if (y < 0): # Have we reached the end of the line?
+                x += count # Jump one line down
+                if (y >= height):
+                    print("[!] You must use a bigger canvas than height:{} width:{}".format(height, width))
+                    exit()
+                y = height - 1
+        elif (encodingType == "ttb"):
             y += count
-            if (y >= height):
-                print("[!] You must use a bigger canvas than height:{} width:{}".format(height, width))
-                exit()
-            x = count
+            if (y >= height): # Have we reached the end of the line?
+                x += count # Jump one line down
+                if (y >= height):
+                    print("[!] You must use a bigger canvas than height:{} width:{}".format(height, width))
+                    exit()
+                y = 0
 
     if (blanks): # We will fill all the black pixels with a random color
         x = 0
@@ -137,7 +206,7 @@ def updAlphabet(file):
     for n in openFile:
         ALPHA.append(n[:-1]) # Removes the \n at the end of n and inserts it into the global alphabet list
 
-def encrypt(message, width, height, readFile, count, fillBlanks, updImage):
+def encrypt(message, width, height, readFile, count, fillBlanks, updImage, encodingType):
     if (len(CTW) == 0):
         generateEncoding() # Get the encoding
     if (readFile): # We are gonna encrypt the contents of a file
@@ -147,12 +216,12 @@ def encrypt(message, width, height, readFile, count, fillBlanks, updImage):
             message.append(n)
 
     ENCODED_MESSAGE = encryptMessage(message) # Get the encrypted message
-    saveImage(ENCODED_MESSAGE, "result.png", width, height, count, fillBlanks, updImage) # Save it as an image
+    saveImage(ENCODED_MESSAGE, "result.png", width, height, count, fillBlanks, updImage, encodingType) # Save it as an image
     saveEncoding() # Save the encoding used
 
-def decrypt(imagePath, encPath, saveResult, runSys, count, width, height):
+def decrypt(imagePath, encPath, saveResult, runSys, count, width, height, encoding_type):
     loadEncoding(encPath)
-    DECODED_MESSAGE = decryptMessage(imagePath, count, width, height)
+    DECODED_MESSAGE = decryptMessage(imagePath, count, width, height, encoding_type)
     if (saveResult): # We need to save it to the harddrive
         openFile = open("decodedMessage.txt", "w")
         openFile.write(DECODED_MESSAGE)
@@ -200,12 +269,20 @@ if __name__ == "__main__":
     parser.add_argument("--gen_enc_from_image", "-gefi",help="Generates an encoding based of the pixels in the given image and saves it to the file 'enc.txt'")
     parser.add_argument("--include_in_pic", "-iip", help="Tells the encrypter that we shall use an image (provided by the user) instead of generating our own, only usable with the --encrypt flag")
 
+    parser.add_argument("--right_to_left", "-rtl", action="store_true",help="Tells that you want the pixels to be placed right to left")
+    parser.add_argument("--left_to_right", "-ltr", action="store_true", help="Tells that you want the pixels to be placed left to right (DEFAULT)")
+    parser.add_argument("--top_to_bot", "-ttb", action="store_true", help="Tells that you want the pixels to be placed top to bot (you can use -ltr and -rtl here)")
+    parser.add_argument("--bot_to_top", "-btt", action="store_true", help="Tells that you want the pixels to be placed bot to top (you can use -ltr and -rtl here)")
+
+
+
     args = parser.parse_args()
     file = None
     height = None
     width = None
     count = 1 # Default distance between each pod (pixel of data) is one
     fill_blank = False
+    encoding_type = "ltr" # Default coding type is going from left to right
 
     if (args.fill_blanks):
         fill_blank = True
@@ -226,15 +303,21 @@ if __name__ == "__main__":
         saveEncoding()
         print("[!] Result can be found in the file 'enc.txt'")
         exit()
+    if (args.right_to_left):
+        encoding_type = "rtl"
+    elif (args.bot_to_top):
+        encoding_type = "btt"
+    elif (args.top_to_bot):
+        encoding_type = "ttb"
 
     if (args.encrypt):
         if (args.include_in_pic):
-            encrypt(args.encrypt, width, height, args.file, int(count), fill_blank, args.include_in_pic)
+            encrypt(args.encrypt, width, height, args.file, int(count), fill_blank, args.include_in_pic, encoding_type)
         else:
-            encrypt(args.encrypt, width, height, args.file, int(count), fill_blank, None)
+            encrypt(args.encrypt, width, height, args.file, int(count), fill_blank, None, encoding_type)
     elif (args.decrypt):
         if (args.load_image and args.load_enc):
-            decrypt(args.load_image, args.load_enc, args.save_dec, args.sys, int(count), width, height)
+            decrypt(args.load_image, args.load_enc, args.save_dec, args.sys, int(count), width, height, encoding_type)
         else:
             print("main.py --decrypt -li <path/to/image> -le <path/to/enc> <optionalArgs>")
     else:
