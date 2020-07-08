@@ -68,19 +68,22 @@ def decryptMessage(pathToFile, count, width, height):
     return DECODED_MESSAGE
 
 def saveImage(ENCODED_MESSAGE, outputFileName, width, height, count, blanks, updImage):
-    if (width == None):
+    if (width == None and updImage == None):
         width = 10
-    if (height == None):
+    if (height == None and updImage == None):
         height = 10
 
     if (updImage != None): # We are gonna encrypt the message in the provided picture
         image = Image.open(updImage)
+        width = image.size[0]
+        height = image.size[1]
     else:
         image = Image.new("RGB", (width, height), color=None) # Open the file
 
     pix = image.load() # Load it's contents to memory
     x = count
     y = 0
+
     for n in ENCODED_MESSAGE:
         pix[x,y] = n # Adds the color code of n to the position of x and y in pix
         x += count
