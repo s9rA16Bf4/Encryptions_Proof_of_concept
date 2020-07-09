@@ -20,5 +20,14 @@ It's important that you have `Pillow` installed, the program will not work other
 
 ![](https://github.com/s9rA16Bf4/colorEncryption/blob/master/pictures/1594210667_1417_08072020_1366x768.png)<p align=left>This image is pretty special, it contains the message "hello" and "world". But you can only find that out if you decrypt it with the pod set to 4 (this will get you "hello") and 3 ("world").  You of course need the correct encryption table to be able to decipher it</p>
 
+You can even decide if the encrypter will place the pod's (pixels of data) in different directions. This adds another complexitiy when you want to decipher a message.
+
+![](https://github.com/s9rA16Bf4/colorEncryption/blob/master/pictures/btt.png)<p align=left> The pods are placed from the bottom left to the top</p>
+![](https://github.com/s9rA16Bf4/colorEncryption/blob/master/pictures/ttb.png)<p align=left>Same as above but the pods are placed from the top to the bottom of the picture</p>
+![](https://github.com/s9rA16Bf4/colorEncryption/blob/master/pictures/rtl.png)<p align=left> The pod's are placed from the right to the left</p>
+![](https://github.com/s9rA16Bf4/colorEncryption/blob/master/pictures/ltr.png)<p align=left>This is how the pod`s are normally placed when nothing has been said</p>
+
+When specifying bot_to_top (btt) or top_to_bot (ttb) it's nice to know that you can tell the encrypter to place the pod's at the right hand side by using the right_to_left (rtl) flag
+
 ## Challenges
 1) http://q9j4vf8.atwebpages.com/
