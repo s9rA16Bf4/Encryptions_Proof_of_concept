@@ -1,4 +1,4 @@
-# Encryptions_Proof_of_conept
+# Encryptions_Proof_of_concept
 
 A collection of encryption systems. Everything in this repository is only a proof of concept
 
